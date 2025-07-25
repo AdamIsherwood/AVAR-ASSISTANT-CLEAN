@@ -16,14 +16,14 @@ export default function BookingModule({
 }: BookingModuleProps) {
   const { home, away, bookings } = state.context;
   const [activeTeam, setActiveTeam] = useState<'home' | 'away'>('home');
-  const [selectedCard, setSelectedCard] = useState<'yellow' | 'red' | null>(null);
+  const [selectedCard, setSelectedCard] = useState<'yellow' | 'red' | 'second-yellow' | null>(null);
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
 
   useEffect(() => {
     if (editingEventId) {
       const bookingToEdit = bookings.find((b) => b.eventId === editingEventId);
       if (bookingToEdit) {
-        setSelectedCard(bookingToEdit.cardType);
+        setSelectedCard(bookingToEdit.cardType as 'yellow' | 'red' | 'second-yellow');
         setSelectedPlayerId(bookingToEdit.playerId);
       }
     } else {
@@ -96,8 +96,14 @@ export default function BookingModule({
         >
           <option value="">Select Person...</option>
           {activeRoster.map((player) => (
-            <option key={player.playerId} value={player.playerId}>
+            <option
+              key={player.playerId}
+              value={player.playerId}
+              disabled={player.status === 'DISMISSED'}
+              className={player.status === 'DISMISSED' ? 'text-gray-500' : ''}
+            >
               {player.number} - {player.name}
+              {player.status === 'DISMISSED' ? ' (Dismissed)' : ''}
             </option>
           ))}
         </select>
