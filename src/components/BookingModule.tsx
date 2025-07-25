@@ -9,11 +9,7 @@ type BookingModuleProps = {
   editingEventId: string | null;
 };
 
-export default function BookingModule({
-  state,
-  sendEvent,
-  editingEventId,
-}: BookingModuleProps) {
+export default function BookingModule({ state, sendEvent, editingEventId }: BookingModuleProps) {
   const { home, away, bookings } = state.context;
   const [activeTeam, setActiveTeam] = useState<'home' | 'away'>('home');
   const [selectedCard, setSelectedCard] = useState<'yellow' | 'red' | 'second-yellow' | null>(null);
@@ -25,15 +21,11 @@ export default function BookingModule({
     if (editingEventId) {
       const bookingToEdit = bookings.find((b) => b.eventId === editingEventId);
       if (bookingToEdit) {
-        setSelectedPersonType(bookingToEdit.isPlayer ? 'player' : 'staff');
-        setSelectedCard(bookingToEdit.cardType as 'yellow' | 'red' | 'second-yellow');
+        setSelectedCard(bookingToEdit.cardType as any);
         setSelectedPlayerId(bookingToEdit.playerId);
       }
-    } else {
-      setSelectedCard(null);
-      setSelectedPlayerId('');
     }
-  }, [editingEventId, bookings, state.context.bookings]);
+  }, [editingEventId, bookings]);
 
   const activeRoster = activeTeam === 'home' ? home.roster : away.roster;
 
@@ -60,121 +52,42 @@ export default function BookingModule({
 
   const handleTeamSwitch = (team: 'home' | 'away') => {
     setActiveTeam(team);
-    setSelectedPlayerId(''); // Reset player on team switch
+    setSelectedPlayerId('');
     setSelectedPersonType('player');
   };
 
   return (
     <div className="p-4 space-y-4">
       <h3 className="text-xl font-semibold">{editingEventId ? 'Edit Booking' : 'Log Booking'}</h3>
-
-      {/* Team Tabs */}
       <div className="flex border-b border-gray-600">
-        <button
-          onClick={() => handleTeamSwitch('home')}
-          className={`py-2 px-4 font-semibold ${
-            activeTeam === 'home' ? 'bg-gray-700 rounded-t-lg' : 'text-gray-400'
-          }`}
-        >
-          HOME
-        </button>
-        <button
-          onClick={() => handleTeamSwitch('away')}
-          className={`py-2 px-4 font-semibold ${
-            activeTeam === 'away' ? 'bg-gray-700 rounded-t-lg' : 'text-gray-400'
-          }`}
-        >
-          AWAY
-        </button>
+        <button onClick={() => handleTeamSwitch('home')} className={`py-2 px-4 font-semibold ${activeTeam === 'home' ? 'bg-gray-700 rounded-t-lg' : 'text-gray-400'}`}>HOME</button>
+        <button onClick={() => handleTeamSwitch('away')} className={`py-2 px-4 font-semibold ${activeTeam === 'away' ? 'bg-gray-700 rounded-t-lg' : 'text-gray-400'}`}>AWAY</button>
       </div>
-
-      {/* Person Select */}
       <div className="space-y-1">
-        <label
-          htmlFor="person-select"
-          className="block text-sm font-medium text-gray-300"
-        >
-          Select Person
-        </label>
-        <select
-          id="person-select"
-          className="w-full bg-gray-700 border border-gray-600 rounded-md p-2"
-          value={selectedPlayerId}
-          onChange={(e) => {
-            setSelectedPlayerId(e.target.value);
-            setSelectedPersonType('player');
-          }}
-        >
+        <label htmlFor="person-select" className="block text-sm font-medium text-gray-300">Select Person</label>
+        <select id="person-select" className="w-full bg-gray-700 border border-gray-600 rounded-md p-2" value={selectedPlayerId} onChange={(e) => { setSelectedPlayerId(e.target.value); setSelectedPersonType('player'); }}>
           <option value="">Select Person...</option>
           {activeRoster.map((player) => (
-            <option
-              key={player.playerId}
-              value={player.playerId}
-              disabled={player.status === 'DISMISSED'}
-              className={player.status === 'DISMISSED' ? 'text-gray-500' : ''}
-            >
-              {player.number} - {player.name}
-              {player.status === 'DISMISSED' ? ' (Dismissed)' : ''}
+            <option key={player.playerId} value={player.playerId} disabled={player.status === 'DISMISSED'} className={player.status === 'DISMISSED' ? 'text-gray-500' : ''}>
+              {player.number} - {player.name}{player.status === 'DISMISSED' ? ' (Dismissed)' : ''}
             </option>
           ))}
         </select>
       </div>
-
-      <button
-        onClick={() => setShowStaff(!showStaff)}
-        className="w-full text-sm text-gray-400 hover:text-white py-1 uppercase"
-      >
-        OFF PITCH
-      </button>
-
+      <button onClick={() => setShowStaff(!showStaff)} className="w-full text-sm text-gray-400 hover:text-white py-1 uppercase">OFF PITCH</button>
       {showStaff && (
         <div className="border-t border-gray-600 pt-4 mt-4 space-y-2">
           <h4 className="text-md font-semibold text-gray-300">Team Staff</h4>
-          <button
-            onClick={() => {
-              setSelectedPlayerId('manager');
-              setSelectedPersonType('staff');
-            }}
-            className={`w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg ${
-              selectedPlayerId === 'manager' ? 'ring-2 ring-blue-500' : ''
-            }`}
-          >
-            Manager
-          </button>
-          <button className="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">
-            Add Other Staff
-          </button>
+          <button onClick={() => { setSelectedPlayerId('manager'); setSelectedPersonType('staff'); }} className={`w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg ${selectedPlayerId === 'manager' ? 'ring-2 ring-blue-500' : ''}`}>Manager</button>
+          <button className="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">Add Other Staff</button>
         </div>
       )}
-
-      {/* Card Buttons */}
       <div className="grid grid-cols-2 gap-2 pt-2">
-        <button
-          onClick={() => setSelectedCard('yellow')}
-          className={`w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded-lg ${
-            selectedCard === 'yellow' ? 'ring-2 ring-yellow-400' : ''
-          }`}
-        >
-          Yellow Card
-        </button>
-        <button
-          onClick={() => setSelectedCard('red')}
-          className={`w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg ${
-            selectedCard === 'red' ? 'ring-2 ring-red-500' : ''
-          }`}
-        >
-          Red Card
-        </button>
+        <button onClick={() => setSelectedCard('yellow')} className={`w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-2 px-4 rounded-lg ${selectedCard === 'yellow' ? 'ring-2 ring-yellow-400' : ''}`}>Yellow Card</button>
+        <button onClick={() => setSelectedCard('red')} className={`w-full bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg ${selectedCard === 'red' ? 'ring-2 ring-red-500' : ''}`}>Red Card</button>
       </div>
-
-      {/* Save Button */}
       <div className="pt-4">
-        <button
-          onClick={handleSave}
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg"
-        >
-          {editingEventId ? 'Update Booking' : 'Save Booking'}
-        </button>
+        <button onClick={handleSave} className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg">{editingEventId ? 'Update Booking' : 'Save Booking'}</button>
       </div>
     </div>
   );

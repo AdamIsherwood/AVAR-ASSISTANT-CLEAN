@@ -1,6 +1,8 @@
-import { createMachine, assign } from 'xstate';
+import { createMachine, assign, sendTo } from 'xstate';
+import { fromCallback } from 'xstate';
+import TimerWorker from '../workers/timerWorker?worker';
 
-// Helper types for our context
+// Helper Types
 type Player = { playerId: string; name: string; number: number; status: string };
 type TeamContext = {
   substitutionsUsed: number;
@@ -9,15 +11,34 @@ type TeamContext = {
   maxSubstitutionWindows: number;
   roster: Player[];
 };
-type Booking = { eventId: string; playerId: string; cardType: string; deleted?: boolean; isPlayer?: boolean };
+type Booking = {
+  eventId: string;
+  playerId: string;
+  cardType: string;
+  isPlayer?: boolean;
+  deleted?: boolean;
+};
 
 export const matchMachine = createMachine({
   id: 'match',
   initial: 'PRE_MATCH',
+ invoke: {
+  id: 'timerWorker',
+  src: fromCallback(({ sendBack, receive }) => {
+    const worker = new TimerWorker();
+
+    worker.onmessage = (event) => {
+      sendBack(event.data);
+    };
+
+    receive((event) => {
+      worker.postMessage(event.type);
+    });
+
+    return () => worker.terminate();
+  }),
+},
   context: {
-    matchTime: 0,
-    stoppageTime: 0,
-    announcedAddedTime: null as number | null,
     stoppageActive: false,
     stoppageReason: null as string | null,
     eventHubOpen: false,
@@ -26,10 +47,7 @@ export const matchMachine = createMachine({
     bookings: [] as Booking[],
     varReviews: [] as any[],
     goals: [] as any[],
-    penalties: {
-      home: [] as string[],
-      away: [] as string[],
-    },
+    penalties: { home: [] as string[], away: [] as string[] },
     home: {
       substitutionsUsed: 0,
       substitutionWindowsUsed: 0,
@@ -52,72 +70,60 @@ export const matchMachine = createMachine({
         { playerId: 'a-p3', name: 'Player Three (Away)', number: 3, status: 'ON_PITCH' },
       ],
     } as TeamContext,
+    matchTime: 0,
+    announcedAddedTime: null as number | null,
+    totalStoppageTime: 0,
+    stoppageStartTime: 0,
   },
   states: {
-    PRE_MATCH: {
-      on: { NEXT: 'IN_MATCH.FIRST_HALF' },
-    },
+    PRE_MATCH: { on: { NEXT: 'IN_MATCH.FIRST_HALF' } },
     IN_MATCH: {
       initial: 'FIRST_HALF',
       states: {
-        FIRST_HALF: {
-          on: { NEXT: 'HALF_TIME', RESET: '#match.PRE_MATCH' },
-        },
-        HALF_TIME: {
-          on: { NEXT: 'SECOND_HALF', RESET: 'FIRST_HALF' },
-        },
-        SECOND_HALF: {
-          on: { NEXT: 'PENALTIES', RESET: 'HALF_TIME' },
-        },
-        PENALTIES: {
-          on: { NEXT: '#match.MATCH_OVER' },
-        },
-        // This is the history state. It remembers which sub-state we were in.
+        FIRST_HALF: { on: { NEXT: 'HALF_TIME', RESET: '#match.PRE_MATCH' } },
+        HALF_TIME: { on: { NEXT: 'SECOND_HALF', RESET: 'FIRST_HALF' } },
+        SECOND_HALF: { on: { NEXT: 'PENALTIES', RESET: 'HALF_TIME' } },
+        PENALTIES: { on: { NEXT: '#match.MATCH_OVER' } },
         history: { type: 'history', history: 'deep' },
       },
       on: {
-        PAUSE: '#match.MATCH_PAUSED',
-      }
+        PAUSE: {
+          target: '#match.MATCH_PAUSED',
+          actions: sendTo('timerWorker', { type: 'PAUSE_CLOCK' }),
+        },
+      },
     },
     MATCH_PAUSED: {
       on: {
-        // When we continue, go back to the history state we bookmarked.
-        CONTINUE: 'IN_MATCH.history',
+        CONTINUE: {
+          target: 'IN_MATCH.history',
+          actions: sendTo('timerWorker', { type: 'RESUME_CLOCK' }),
+        },
       },
     },
-    MATCH_OVER: {
-      type: 'final',
-    },
+    MATCH_OVER: { type: 'final' },
   },
-  // Global events that can happen in any state
   on: {
-    TIME_UPDATE: {
-      actions: assign({
-        matchTime: ({ event }) => event.time,
-        announcedAddedTime: ({ context, event }) => {
-          // Freeze logic for 45 minutes
-          if (event.time >= 2700 && context.announcedAddedTime === null) {
-            return Math.round(context.stoppageTime / 60);
-          }
-          return context.announcedAddedTime;
-        },
-      }),
-    },
-    STOPPAGE_TIME_UPDATE: {
-      actions: assign({
-        stoppageTime: ({ event }) => event.time,
-      }),
-    },
+  'TICK': {
+    actions: assign({ matchTime: ({ event }) => event.time }),
+  },
     TOGGLE_EVENT_HUB: {
-      actions: assign({
+        actions: assign({
         eventHubOpen: ({ context }) => !context.eventHubOpen,
       }),
     },
     START_STOPPAGE: {
-      actions: assign({ stoppageActive: true }),
+      actions: assign({ 
+        stoppageActive: true,
+        stoppageStartTime: Date.now()
+      }),
     },
     END_STOPPAGE: {
-      actions: assign({ stoppageActive: false, stoppageReason: null }),
+      actions: assign({ 
+        stoppageActive: false, 
+        stoppageReason: null,
+        totalStoppageTime: ({ context }) => context.totalStoppageTime + (Date.now() - context.stoppageStartTime) / 1000
+      }),
     },
     SET_STOPPAGE_REASON: {
       actions: assign({
@@ -238,5 +244,5 @@ export const matchMachine = createMachine({
             eventHubOpen: false
         })
     }
-  },
+  }
 });
