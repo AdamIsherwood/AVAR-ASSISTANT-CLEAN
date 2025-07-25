@@ -32,11 +32,19 @@ export default function BookingModule({
   }, [editingEventId, bookings]);
 
   const handleSave = () => {
-    if (selectedCard) {
-      sendEvent({
-        type: 'CARD_ISSUED',
-        booking: { playerId: 'p123', cardType: selectedCard },
-      });
+    if (selectedCard && selectedPlayerId) {
+      if (editingEventId) {
+        sendEvent({
+          type: 'UPDATE_BOOKING',
+          eventId: editingEventId,
+          bookingUpdate: { playerId: selectedPlayerId, cardType: selectedCard },
+        });
+      } else {
+        sendEvent({
+          type: 'CARD_ISSUED',
+          booking: { playerId: selectedPlayerId, cardType: selectedCard },
+        });
+      }
     }
   };
 

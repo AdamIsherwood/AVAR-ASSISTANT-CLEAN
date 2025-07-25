@@ -71,6 +71,22 @@ export const matchMachine = createMachine({
         editingEventId: ({ event }) => event.eventId,
       }),
     },
+    UPDATE_BOOKING: {
+      actions: assign({
+        bookings: ({ context, event }) => {
+          const newBookings = context.bookings.map((b) =>
+            b.eventId === event.eventId ? { ...b, deleted: true } : b,
+          );
+          newBookings.push({
+            ...event.bookingUpdate,
+            eventId: crypto.randomUUID(),
+          });
+          return newBookings;
+        },
+        editingEventId: null,
+        eventHubOpen: false,
+      }),
+    },
     START_STOPPAGE: {
       actions: assign({
         stoppageActive: true,
