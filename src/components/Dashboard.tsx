@@ -50,7 +50,7 @@ export default function Dashboard({
       <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
         <h2 className="uppercase">Stoppage System</h2>
         <StoppageControls state={state} sendEvent={sendEvent} />
-        <AddedTimeDisplay accurateTime={stoppageTime} announcedTime="0" />
+        <AddedTimeDisplay accurateTime={stoppageTime} />
       </div>
       <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
         <h2 className="uppercase">Event Log</h2>
