@@ -14,7 +14,8 @@ export default function BookingModule({
   sendEvent,
   editingEventId,
 }: BookingModuleProps) {
-  const { home, bookings } = state.context;
+  const { home, away, bookings } = state.context;
+  const [activeTeam, setActiveTeam] = useState<'home' | 'away'>('home');
   const [selectedCard, setSelectedCard] = useState<'yellow' | 'red' | null>(null);
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
 
@@ -30,6 +31,8 @@ export default function BookingModule({
       setSelectedPlayerId('');
     }
   }, [editingEventId, bookings]);
+
+  const activeRoster = activeTeam === 'home' ? home.roster : away.roster;
 
   const handleSave = () => {
     if (selectedCard && selectedPlayerId) {
@@ -48,16 +51,31 @@ export default function BookingModule({
     }
   };
 
+  const handleTeamSwitch = (team: 'home' | 'away') => {
+    setActiveTeam(team);
+    setSelectedPlayerId(''); // Reset player on team switch
+  };
+
   return (
     <div className="p-4 space-y-4">
       <h3 className="text-xl font-semibold">{editingEventId ? 'Edit Booking' : 'Log Booking'}</h3>
 
       {/* Team Tabs */}
       <div className="flex border-b border-gray-600">
-        <button className="py-2 px-4 bg-gray-700 rounded-t-lg font-semibold">
+        <button
+          onClick={() => handleTeamSwitch('home')}
+          className={`py-2 px-4 font-semibold ${
+            activeTeam === 'home' ? 'bg-gray-700 rounded-t-lg' : 'text-gray-400'
+          }`}
+        >
           HOME
         </button>
-        <button className="py-2 px-4 text-gray-400 font-semibold">
+        <button
+          onClick={() => handleTeamSwitch('away')}
+          className={`py-2 px-4 font-semibold ${
+            activeTeam === 'away' ? 'bg-gray-700 rounded-t-lg' : 'text-gray-400'
+          }`}
+        >
           AWAY
         </button>
       </div>
@@ -77,7 +95,7 @@ export default function BookingModule({
           onChange={(e) => setSelectedPlayerId(e.target.value)}
         >
           <option value="">Select Person...</option>
-          {home.roster.map((player) => (
+          {activeRoster.map((player) => (
             <option key={player.playerId} value={player.playerId}>
               {player.number} - {player.name}
             </option>
