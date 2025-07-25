@@ -3,6 +3,7 @@ import MatchControls from './MatchControls';
 import StoppageControls from './StoppageControls';
 import AddedTimeDisplay from './AddedTimeDisplay';
 import EventLog from './EventLog';
+import ClockAdjustment from './ClockAdjustment';
 import { generatePdfReport } from '../lib/reportGenerator';
 import type { StateFrom } from 'xstate';
 import type { matchMachine } from '../machines/matchMachine';
@@ -42,6 +43,7 @@ export default function Dashboard({
         <h2 className="uppercase">Match Clock & Controls</h2>
         <MatchClock timeInSeconds={time} state={state} />
         <MatchControls state={state} sendEvent={sendEvent} />
+        {state.context.liveEditActive && <ClockAdjustment />}
       </div>
       <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
         <h2 className="uppercase">Stoppage System</h2>
