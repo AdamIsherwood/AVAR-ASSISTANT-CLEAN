@@ -16,6 +16,7 @@ export default function SubstitutionModule({
   const [activeTeam, setActiveTeam] = useState<'home' | 'away'>('home');
   const [playerInId, setPlayerInId] = useState('');
   const [playerOutId, setPlayerOutId] = useState('');
+  const [isConcussionSub, setIsConcussionSub] = useState(false);
 
   const activeRoster = activeTeam === 'home' ? home.roster : away.roster;
 
@@ -26,6 +27,7 @@ export default function SubstitutionModule({
         teamId: activeTeam,
         playerInId,
         playerOutId,
+        isConcussionSub,
       });
     }
   };
@@ -38,11 +40,13 @@ export default function SubstitutionModule({
       <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-center bg-gray-900 p-3 rounded-lg">
         <div className="text-sm">
           <span className="font-bold block text-gray-400">HOME</span>
-          {home.substitutionsUsed} subs / {home.substitutionWindowsUsed} windows
+          {home.substitutionsUsed} / {home.maxSubstitutions} subs |{' '}
+          {home.substitutionWindowsUsed} / {home.maxSubstitutionWindows} windows
         </div>
         <div className="text-sm">
           <span className="font-bold block text-gray-400">AWAY</span>
-          {away.substitutionsUsed} subs / {away.substitutionWindowsUsed} windows
+          {away.substitutionsUsed} / {away.maxSubstitutions} subs |{' '}
+          {away.substitutionWindowsUsed} / {away.maxSubstitutionWindows} windows
         </div>
       </div>
 
@@ -117,6 +121,8 @@ export default function SubstitutionModule({
         <input
           id="concussion-sub"
           type="checkbox"
+          checked={isConcussionSub}
+          onChange={(e) => setIsConcussionSub(e.target.checked)}
           className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
         />
         <label htmlFor="concussion-sub" className="text-sm text-gray-300">

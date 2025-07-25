@@ -43,6 +43,8 @@ export const matchMachine = createMachine({
     home: {
       substitutionsUsed: 0,
       substitutionWindowsUsed: 0,
+      maxSubstitutions: 5,
+      maxSubstitutionWindows: 3,
       roster: [
         { playerId: 'h-p1', name: 'Player One', number: 1 },
         { playerId: 'h-p2', name: 'Player Two', number: 2 },
@@ -53,6 +55,8 @@ export const matchMachine = createMachine({
     away: {
       substitutionsUsed: 0,
       substitutionWindowsUsed: 0,
+      maxSubstitutions: 5,
+      maxSubstitutionWindows: 3,
       roster: [
         { playerId: 'a-p1', name: 'Player One', number: 1 },
         { playerId: 'a-p2', name: 'Player Two', number: 2 },
@@ -156,30 +160,34 @@ export const matchMachine = createMachine({
   }),
 },
     SUBSTITUTION_MADE: {
-  actions: assign(({ context, event }) => {
-    // This check confirms to TypeScript that our event has a teamId
-    if (event.teamId === 'home') {
-  return {
-    home: {
-      ...context.home, // This line preserves the roster
-      substitutionsUsed: context.home.substitutionsUsed + 1,
-      substitutionWindowsUsed: context.home.substitutionWindowsUsed + 1,
+      actions: assign(({ context, event }) => {
+        const { teamId, isConcussionSub } = event;
+
+        let home = { ...context.home };
+        let away = { ...context.away };
+
+        if (isConcussionSub) {
+          home = {
+            ...home,
+            maxSubstitutions: home.maxSubstitutions + 1,
+            maxSubstitutionWindows: home.maxSubstitutionWindows + 1,
+          };
+          away = {
+            ...away,
+            maxSubstitutions: away.maxSubstitutions + 1,
+            maxSubstitutionWindows: away.maxSubstitutionWindows + 1,
+          };
+        }
+
+        if (teamId === 'home') {
+          home = { ...home, substitutionsUsed: home.substitutionsUsed + 1, substitutionWindowsUsed: home.substitutionWindowsUsed + 1 };
+        } else if (teamId === 'away') {
+          away = { ...away, substitutionsUsed: away.substitutionsUsed + 1, substitutionWindowsUsed: away.substitutionWindowsUsed + 1 };
+        }
+
+        return { home, away };
+      }),
     },
-  };
-}
-if (event.teamId === 'away') {
-  return {
-    away: {
-      ...context.away, // This line preserves the roster
-      substitutionsUsed: context.away.substitutionsUsed + 1,
-      substitutionWindowsUsed: context.away.substitutionWindowsUsed + 1,
-    },
-  };
-}
-    // If the event is not what we expect, return an empty object to make no changes.
-    return {};
-  }),
-},
     TOGGLE_LIVE_EDIT: {
       actions: assign({
         liveEditActive: ({ context }) => !context.liveEditActive,
