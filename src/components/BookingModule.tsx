@@ -18,11 +18,14 @@ export default function BookingModule({
   const [activeTeam, setActiveTeam] = useState<'home' | 'away'>('home');
   const [selectedCard, setSelectedCard] = useState<'yellow' | 'red' | 'second-yellow' | null>(null);
   const [selectedPlayerId, setSelectedPlayerId] = useState('');
+  const [selectedPersonType, setSelectedPersonType] = useState<'player' | 'staff'>('player');
+  const [showStaff, setShowStaff] = useState(false);
 
   useEffect(() => {
     if (editingEventId) {
       const bookingToEdit = bookings.find((b) => b.eventId === editingEventId);
       if (bookingToEdit) {
+        setSelectedPersonType(bookingToEdit.isPlayer ? 'player' : 'staff');
         setSelectedCard(bookingToEdit.cardType as 'yellow' | 'red' | 'second-yellow');
         setSelectedPlayerId(bookingToEdit.playerId);
       }
@@ -30,7 +33,7 @@ export default function BookingModule({
       setSelectedCard(null);
       setSelectedPlayerId('');
     }
-  }, [editingEventId, bookings]);
+  }, [editingEventId, bookings, state.context.bookings]);
 
   const activeRoster = activeTeam === 'home' ? home.roster : away.roster;
 
@@ -45,7 +48,11 @@ export default function BookingModule({
       } else {
         sendEvent({
           type: 'CARD_ISSUED',
-          booking: { playerId: selectedPlayerId, cardType: selectedCard },
+          booking: {
+            playerId: selectedPlayerId,
+            cardType: selectedCard,
+            isPlayer: selectedPersonType === 'player',
+          },
         });
       }
     }
@@ -54,6 +61,7 @@ export default function BookingModule({
   const handleTeamSwitch = (team: 'home' | 'away') => {
     setActiveTeam(team);
     setSelectedPlayerId(''); // Reset player on team switch
+    setSelectedPersonType('player');
   };
 
   return (
@@ -92,7 +100,10 @@ export default function BookingModule({
           id="person-select"
           className="w-full bg-gray-700 border border-gray-600 rounded-md p-2"
           value={selectedPlayerId}
-          onChange={(e) => setSelectedPlayerId(e.target.value)}
+          onChange={(e) => {
+            setSelectedPlayerId(e.target.value);
+            setSelectedPersonType('player');
+          }}
         >
           <option value="">Select Person...</option>
           {activeRoster.map((player) => (
@@ -108,6 +119,33 @@ export default function BookingModule({
           ))}
         </select>
       </div>
+
+      <button
+        onClick={() => setShowStaff(!showStaff)}
+        className="w-full text-sm text-gray-400 hover:text-white py-1 uppercase"
+      >
+        OFF PITCH
+      </button>
+
+      {showStaff && (
+        <div className="border-t border-gray-600 pt-4 mt-4 space-y-2">
+          <h4 className="text-md font-semibold text-gray-300">Team Staff</h4>
+          <button
+            onClick={() => {
+              setSelectedPlayerId('manager');
+              setSelectedPersonType('staff');
+            }}
+            className={`w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg ${
+              selectedPlayerId === 'manager' ? 'ring-2 ring-blue-500' : ''
+            }`}
+          >
+            Manager
+          </button>
+          <button className="w-full bg-gray-600 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-lg">
+            Add Other Staff
+          </button>
+        </div>
+      )}
 
       {/* Card Buttons */}
       <div className="grid grid-cols-2 gap-2 pt-2">

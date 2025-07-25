@@ -9,7 +9,7 @@ type TeamContext = {
   maxSubstitutionWindows: number;
   roster: Player[];
 };
-type Booking = { eventId: string; playerId: string; cardType: string; deleted?: boolean };
+type Booking = { eventId: string; playerId: string; cardType: string; deleted?: boolean; isPlayer?: boolean };
 
 export const matchMachine = createMachine({
   id: 'match',
