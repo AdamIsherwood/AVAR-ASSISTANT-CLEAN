@@ -32,6 +32,7 @@ export const matchMachine = createMachine({
     stoppageReason: null as string | null,
     eventHubOpen: false,
     liveEditActive: false,
+    editingEventId: null as string | null,
     bookings: [] as Booking[],
     varReviews: [] as VarReview[],
     goals: [] as Goal[],
@@ -63,6 +64,12 @@ export const matchMachine = createMachine({
   on: {
     PAUSE: {
       target: '.MATCH_PAUSED',
+    },
+    START_EDIT_BOOKING: {
+      actions: assign({
+        eventHubOpen: true,
+        editingEventId: ({ event }) => event.eventId,
+      }),
     },
     START_STOPPAGE: {
       actions: assign({

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { StateFrom } from 'xstate';
 import type { XStateSend } from '../App';
 import type { matchMachine } from '../machines/matchMachine';
@@ -6,14 +6,31 @@ import type { matchMachine } from '../machines/matchMachine';
 type BookingModuleProps = {
   state: StateFrom<typeof matchMachine>;
   sendEvent: XStateSend;
+  editingEventId: string | null;
 };
 
-export default function BookingModule({ state, sendEvent }: BookingModuleProps) {
-  const { home } = state.context;
+export default function BookingModule({
+  state,
+  sendEvent,
+  editingEventId,
+}: BookingModuleProps) {
+  const { home, bookings } = state.context;
   const [selectedCard, setSelectedCard] = useState<'yellow' | 'red' | null>(null);
+  const [selectedPlayerId, setSelectedPlayerId] = useState('');
 
-  // =================================================================
-  // ADD THIS FUNCTION HERE (inside the component, before the return)
+  useEffect(() => {
+    if (editingEventId) {
+      const bookingToEdit = bookings.find((b) => b.eventId === editingEventId);
+      if (bookingToEdit) {
+        setSelectedCard(bookingToEdit.cardType);
+        setSelectedPlayerId(bookingToEdit.playerId);
+      }
+    } else {
+      setSelectedCard(null);
+      setSelectedPlayerId('');
+    }
+  }, [editingEventId, bookings]);
+
   const handleSave = () => {
     if (selectedCard) {
       sendEvent({
@@ -22,11 +39,10 @@ export default function BookingModule({ state, sendEvent }: BookingModuleProps) 
       });
     }
   };
-  // =================================================================
 
   return (
     <div className="p-4 space-y-4">
-      <h3 className="text-xl font-semibold">Log Booking</h3>
+      <h3 className="text-xl font-semibold">{editingEventId ? 'Edit Booking' : 'Log Booking'}</h3>
 
       {/* Team Tabs */}
       <div className="flex border-b border-gray-600">
@@ -49,8 +65,10 @@ export default function BookingModule({ state, sendEvent }: BookingModuleProps) 
         <select
           id="person-select"
           className="w-full bg-gray-700 border border-gray-600 rounded-md p-2"
+          value={selectedPlayerId}
+          onChange={(e) => setSelectedPlayerId(e.target.value)}
         >
-          <option>Select Person...</option>
+          <option value="">Select Person...</option>
           {home.roster.map((player) => (
             <option key={player.playerId} value={player.playerId}>
               {player.number} - {player.name}
@@ -81,15 +99,12 @@ export default function BookingModule({ state, sendEvent }: BookingModuleProps) 
 
       {/* Save Button */}
       <div className="pt-4">
-        {/* ================================================================= */}
-        {/* ADD THE onClick HANDLER TO THIS BUTTON */}
         <button
           onClick={handleSave}
           className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg"
         >
-          Save Booking
+          {editingEventId ? 'Update Booking' : 'Save Booking'}
         </button>
-        {/* ================================================================= */}
       </div>
     </div>
   );

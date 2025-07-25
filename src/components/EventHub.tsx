@@ -43,7 +43,13 @@ export default function EventHub({ isOpen, sendEvent, state }: EventHubProps) {
         </div>
         <div className="mt-4">
           {activeTab === 'SUBSTITUTION' && <SubstitutionModule state={state} sendEvent={sendEvent} />}
-          {activeTab === 'BOOKING' && <BookingModule state={state} sendEvent={sendEvent} />}
+          {activeTab === 'BOOKING' && (
+            <BookingModule
+              state={state}
+              sendEvent={sendEvent}
+              editingEventId={state.context.editingEventId}
+            />
+          )}
           {activeTab === 'GOAL' && <GoalModule sendEvent={sendEvent} />}
           {activeTab === 'VAR' && <VARModule sendEvent={sendEvent} />}
         </div>

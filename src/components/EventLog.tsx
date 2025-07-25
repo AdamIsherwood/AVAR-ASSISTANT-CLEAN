@@ -22,7 +22,12 @@ export default function EventLog({ state, sendEvent }: EventLogProps) {
         >
           <span>{booking.cardType} card for {booking.playerId}</span>
           <div className="flex space-x-2">
-            <button className="text-blue-400 text-sm">Edit</button>
+            <button
+              onClick={() => sendEvent({ type: 'START_EDIT_BOOKING', eventId: booking.eventId })}
+              className="text-blue-400 text-sm"
+            >
+              Edit
+            </button>
             <button
               onClick={() => sendEvent({ type: 'DELETE_BOOKING', eventId: booking.eventId })}
               className="text-red-400 text-sm"
