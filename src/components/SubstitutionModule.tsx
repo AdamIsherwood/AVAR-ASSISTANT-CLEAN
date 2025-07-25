@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { StateFrom } from 'xstate';
 import type { XStateSend } from '../App';
 import type { matchMachine } from '../machines/matchMachine';
@@ -12,6 +13,22 @@ export default function SubstitutionModule({
   sendEvent,
 }: SubstitutionModuleProps) {
   const { home, away } = state.context;
+  const [activeTeam, setActiveTeam] = useState<'home' | 'away'>('home');
+  const [playerInId, setPlayerInId] = useState('');
+  const [playerOutId, setPlayerOutId] = useState('');
+
+  const activeRoster = activeTeam === 'home' ? home.roster : away.roster;
+
+  const handleSave = () => {
+    if (playerInId && playerOutId) {
+      sendEvent({
+        type: 'SUBSTITUTION_MADE',
+        teamId: activeTeam,
+        playerInId,
+        playerOutId,
+      });
+    }
+  };
 
   return (
     <div className="p-4 space-y-4">
@@ -31,10 +48,20 @@ export default function SubstitutionModule({
 
       {/* Team Tabs */}
       <div className="flex border-b border-gray-600">
-        <button className="py-2 px-4 bg-gray-700 rounded-t-lg font-semibold">
+        <button
+          onClick={() => setActiveTeam('home')}
+          className={`py-2 px-4 font-semibold ${
+            activeTeam === 'home' ? 'bg-gray-700 rounded-t-lg' : 'text-gray-400'
+          }`}
+        >
           HOME
         </button>
-        <button className="py-2 px-4 text-gray-400 font-semibold">
+        <button
+          onClick={() => setActiveTeam('away')}
+          className={`py-2 px-4 font-semibold ${
+            activeTeam === 'away' ? 'bg-gray-700 rounded-t-lg' : 'text-gray-400'
+          }`}
+        >
           AWAY
         </button>
       </div>
@@ -50,8 +77,15 @@ export default function SubstitutionModule({
         <select
           id="player-out"
           className="w-full bg-gray-700 border border-gray-600 rounded-md p-2"
+          value={playerOutId}
+          onChange={(e) => setPlayerOutId(e.target.value)}
         >
-          <option>Select Player...</option>
+          <option value="">Select Player...</option>
+          {activeRoster.map((player) => (
+            <option key={player.playerId} value={player.playerId}>
+              {player.number} - {player.name}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -66,8 +100,15 @@ export default function SubstitutionModule({
         <select
           id="player-in"
           className="w-full bg-gray-700 border border-gray-600 rounded-md p-2"
+          value={playerInId}
+          onChange={(e) => setPlayerInId(e.target.value)}
         >
-          <option>Select Player...</option>
+          <option value="">Select Player...</option>
+          {activeRoster.map((player) => (
+            <option key={player.playerId} value={player.playerId}>
+              {player.number} - {player.name}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -86,9 +127,7 @@ export default function SubstitutionModule({
       {/* Save Button */}
       <div className="pt-4">
         <button
-          onClick={() =>
-            sendEvent({ type: 'SUBSTITUTION_MADE', teamId: 'home' })
-          }
+          onClick={handleSave}
           className="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg"
         >
           Save Substitution
