@@ -1,8 +1,12 @@
+import type { StateFrom } from 'xstate';
+import type { matchMachine } from '../machines/matchMachine';
+
 type MatchClockProps = {
   readonly timeInSeconds: number;
+  readonly state: StateFrom<typeof matchMachine>;
 };
 
-export default function MatchClock({ timeInSeconds }: MatchClockProps) {
+export default function MatchClock({ timeInSeconds, state }: MatchClockProps) {
   const minutes = Math.floor(timeInSeconds / 60);
   const seconds = timeInSeconds % 60;
 
@@ -10,5 +14,15 @@ export default function MatchClock({ timeInSeconds }: MatchClockProps) {
     seconds,
   ).padStart(2, '0')}`;
 
-  return <div className="text-6xl font-bold text-center">{formattedTime}</div>;
+  const isPaused = state.matches('MATCH_PAUSED');
+
+  return (
+    <div
+      className={`text-6xl font-bold text-center ${
+        isPaused ? 'text-yellow-500' : ''
+      }`}
+    >
+      {formattedTime}
+    </div>
+  );
 }

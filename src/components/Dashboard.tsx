@@ -40,7 +40,7 @@ export default function Dashboard({
     <main className="grid grid-cols-3 gap-4 p-4">
       <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
         <h2 className="uppercase">Match Clock & Controls</h2>
-        <MatchClock timeInSeconds={time} />
+        <MatchClock timeInSeconds={time} state={state} />
         <MatchControls state={state} sendEvent={sendEvent} />
       </div>
       <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
