@@ -50,7 +50,7 @@ export default function EventHub({ isOpen, sendEvent, state }: EventHubProps) {
               editingEventId={state.context.editingEventId}
             />
           )}
-          {activeTab === 'GOAL' && <GoalModule sendEvent={sendEvent} />}
+          {activeTab === 'GOAL' && <GoalModule sendEvent={sendEvent} state={state} />}
           {activeTab === 'VAR' && <VARModule sendEvent={sendEvent} />}
         </div>
       </div>

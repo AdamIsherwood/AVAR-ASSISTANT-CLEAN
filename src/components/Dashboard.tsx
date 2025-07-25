@@ -3,6 +3,7 @@ import MatchControls from './MatchControls';
 import StoppageControls from './StoppageControls';
 import AddedTimeDisplay from './AddedTimeDisplay';
 import EventLog from './EventLog';
+import { generatePdfReport } from '../lib/reportGenerator';
 import type { StateFrom } from 'xstate';
 import type { matchMachine } from '../machines/matchMachine';
 import type { XStateSend } from '../App';
@@ -72,12 +73,20 @@ export default function Dashboard({
       {state.matches('MATCH_OVER') && (
         <div className="col-span-3 bg-gray-700 rounded-lg p-6 border border-gray-600 text-center">
           <h2 className="text-2xl font-bold mb-4">Match Over</h2>
-          <button
-            onClick={() => handleJsonExport(state.context)}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg"
-          >
-            Generate JSON Report
-          </button>
+          <div className="flex justify-center space-x-4">
+            <button
+              onClick={() => handleJsonExport(state.context)}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg"
+            >
+              Generate JSON Report
+            </button>
+            <button
+              onClick={() => generatePdfReport(state.context)}
+              className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg text-lg"
+            >
+              Generate PDF Report
+            </button>
+          </div>
         </div>
       )}
     </main>

@@ -1,10 +1,13 @@
 import type { XStateSend } from '../App';
+import type { StateFrom } from 'xstate';
+import type { matchMachine } from '../machines/matchMachine';
 
 type GoalModuleProps = {
   sendEvent: XStateSend;
+  state: StateFrom<typeof matchMachine>;
 };
 
-export default function GoalModule({ sendEvent }: GoalModuleProps) {
+export default function GoalModule({ sendEvent, state }: GoalModuleProps) {
   return (
     <div className="p-4 space-y-4">
       <h3 className="text-xl font-semibold">Log Goal</h3>
@@ -32,6 +35,11 @@ export default function GoalModule({ sendEvent }: GoalModuleProps) {
           className="w-full bg-gray-700 border border-gray-600 rounded-md p-2"
         >
           <option>Select Scorer...</option>
+          {state.context.home.roster.map((player) => (
+            <option key={player.playerId} value={player.playerId}>
+              {player.number} - {player.name}
+            </option>
+          ))}
         </select>
       </div>
 
