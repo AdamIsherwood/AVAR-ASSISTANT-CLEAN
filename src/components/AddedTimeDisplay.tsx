@@ -1,9 +1,11 @@
 type AddedTimeDisplayProps = {
   accurateTime: number; // in seconds
+  frozenTime: number | null;
 };
 
 export default function AddedTimeDisplay({
   accurateTime,
+  frozenTime,
 }: AddedTimeDisplayProps) {
   const formatTime = (totalSeconds: number) => {
     const minutes = Math.floor(totalSeconds / 60);
@@ -12,6 +14,7 @@ export default function AddedTimeDisplay({
   };
 
   const roundedTime = Math.round(accurateTime / 60);
+  const announcedTime = frozenTime !== null ? frozenTime : roundedTime;
 
   return (
     <div className="mt-4 text-center space-y-2">
@@ -20,8 +23,9 @@ export default function AddedTimeDisplay({
         {formatTime(accurateTime)}
       </p>
       <p className="text-3xl font-bold">
-        <span className="font-semibold uppercase text-gray-400 text-sm block">Announced Added Time</span> {roundedTime}
+        <span className="font-semibold uppercase text-gray-400 text-sm block">Announced Added Time</span> {announcedTime}
       </p>
     </div>
+    
   );
 }

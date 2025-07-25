@@ -25,9 +25,11 @@ export default function App() {
     workerRef.current.onmessage = (event) => {
       if (event.data.type === 'TICK') {
         setTime(event.data.time);
+        send({ type: 'TIME_UPDATE', time: event.data.time });
       }
       if (event.data.type === 'STOPPAGE_TICK') {
         setStoppageTime(event.data.time);
+        send({ type: 'STOPPAGE_TIME_UPDATE', time: event.data.time });
       }
     };
     workerRef.current.postMessage('START');

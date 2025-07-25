@@ -15,6 +15,9 @@ export const matchMachine = createMachine({
   id: 'match',
   initial: 'PRE_MATCH',
   context: {
+    matchTime: 0,
+    stoppageTime: 0,
+    announcedAddedTime: null as number | null,
     stoppageActive: false,
     stoppageReason: null as string | null,
     eventHubOpen: false,
@@ -88,6 +91,23 @@ export const matchMachine = createMachine({
   },
   // Global events that can happen in any state
   on: {
+    TIME_UPDATE: {
+      actions: assign({
+        matchTime: ({ event }) => event.time,
+        announcedAddedTime: ({ context, event }) => {
+          // Freeze logic for 45 minutes
+          if (event.time >= 2700 && context.announcedAddedTime === null) {
+            return Math.round(context.stoppageTime / 60);
+          }
+          return context.announcedAddedTime;
+        },
+      }),
+    },
+    STOPPAGE_TIME_UPDATE: {
+      actions: assign({
+        stoppageTime: ({ event }) => event.time,
+      }),
+    },
     TOGGLE_EVENT_HUB: {
       actions: assign({
         eventHubOpen: ({ context }) => !context.eventHubOpen,
