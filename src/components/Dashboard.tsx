@@ -14,6 +14,7 @@ type DashboardProps = {
   stoppageTime: number;
   sendEvent: XStateSend;
   state: StateFrom<typeof matchMachine>;
+  onAdjustTime: (amount: number) => void;
 };
 
 export default function Dashboard({
@@ -21,6 +22,7 @@ export default function Dashboard({
   stoppageTime,
   sendEvent,
   state,
+  onAdjustTime,
 }: DashboardProps) {
   const handleJsonExport = (
     context: StateFrom<typeof matchMachine>['context'],
@@ -43,7 +45,7 @@ export default function Dashboard({
         <h2 className="uppercase">Match Clock & Controls</h2>
         <MatchClock timeInSeconds={time} state={state} />
         <MatchControls state={state} sendEvent={sendEvent} />
-        {state.context.liveEditActive && <ClockAdjustment />}
+        {state.context.liveEditActive && <ClockAdjustment onAdjust={onAdjustTime} />}
       </div>
       <div className="bg-gray-800 rounded-lg p-4 border border-gray-700">
         <h2 className="uppercase">Stoppage System</h2>

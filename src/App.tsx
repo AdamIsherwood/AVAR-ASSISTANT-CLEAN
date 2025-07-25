@@ -42,6 +42,10 @@ export default function App() {
     }
   }, [state.context.stoppageActive]);
 
+  const handleAdjustTime = (amount: number) => {
+    workerRef.current?.postMessage({ type: 'ADJUST_TIME', amount });
+  };
+
   if (state.matches('PRE_MATCH')) {
     return <PreMatchSetup sendEvent={send} />;
   }
@@ -49,7 +53,13 @@ export default function App() {
   return (
     <div className="h-screen w-screen bg-gray-900 text-gray-100">
       <Header />
-      <Dashboard time={time} stoppageTime={stoppageTime} sendEvent={send} state={state} />
+      <Dashboard
+        time={time}
+        stoppageTime={stoppageTime}
+        sendEvent={send}
+        state={state}
+        onAdjustTime={handleAdjustTime}
+      />
       <FAB state={state} sendEvent={send} />
       <EventHub isOpen={state.context.eventHubOpen} sendEvent={send} state={state} />
       {showPenalties && <PenaltyShootoutModule state={state} sendEvent={send} onClose={() => setShowPenalties(false)} />}

@@ -4,8 +4,16 @@ let matchTime = 0;
 let stoppageTime = 0;
 
 self.onmessage = (event: MessageEvent) => {
-  const command = event.data;
+  const message = event.data;
 
+  // Handle object-based messages for new features
+  if (typeof message === 'object' && message.type === 'ADJUST_TIME') {
+    matchTime += message.amount;
+    self.postMessage({ type: 'TICK', time: matchTime });
+    return;
+  }
+
+  const command = message; // Handle legacy string-based commands
   if (command === 'START') {
     clearInterval(matchTimerInterval);
     matchTimerInterval = self.setInterval(() => {
